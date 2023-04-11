@@ -135,7 +135,23 @@ app.post("/users", async (req: Request, res: Response) => {
 //DELETE user by id
 app.delete("/users/:id", async (req: Request, res: Response) => {
   try {
-    res.status(200).send({ message: "Pong!Pong!" });
+    const idToDelete = req.params.id;
+    
+    if(idToDelete[0] !== "f"){
+        res.status(400)
+        throw new Error("'id' deve iniciar com a letra 'f'")
+    }
+    
+    const [ userExists ] : TUserDB[] | undefined[] = await db("users").where({id:idToDelete})
+
+    if(!userExists){
+        res.status(404)
+        throw new Error("'id' não encontrado")
+    }
+    await db("users").del().where({id:idToDelete})
+
+    res.status(200).send({ message: "User deletado com sucesso" });
+    // res.status(200).end();
   } catch (error) {
     console.log(error);
 
