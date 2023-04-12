@@ -157,6 +157,7 @@ app.delete("/users/:id", async (req: Request, res: Response) => {
       res.status(404);
       throw new Error("'id' não encontrado");
     }
+    await db("users_tasks").del().where({ user_id: idToDelete });
     await db("users").del().where({ id: idToDelete });
 
     res.status(200).send({ message: "User deletado com sucesso" });
@@ -387,6 +388,8 @@ app.delete("/tasks/:id", async (req: Request, res: Response) => {
       res.status(404);
       throw new Error("'id' não encontrado");
     }
+
+    await db("users_tasks").del().where({ task_id: idToDelete })
     await db("tasks").del().where({ id: idToDelete });
 
     res.status(200).send({ message: "Task deletada com sucesso" });
@@ -522,45 +525,48 @@ app.delete(
 //   GET all users with tasks
 app.get("/tasks/users", async (req: Request, res: Response) => {
   try {
-//    const result = await db("tasks")
-//    .select(
-//     "tasks.id AS taskId",
-//     "title",
-//     "description",
-//     "created_at AS createdAt",
-//     "status",
-//     "user_id AS userId",
-//     "name",
-//     "email",
-//     "password"
-//    )
-//    .leftJoin("users_tasks", "users_tasks.task_id", "=", "tasks.id")
-//    .leftJoin("users", "users_tasks.user_id", "=", "users.id")
+    //    const result = await db("tasks")
+    //    .select(
+    //     "tasks.id AS taskId",
+    //     "title",
+    //     "description",
+    //     "created_at AS createdAt",
+    //     "status",
+    //     "user_id AS userId",
+    //     "name",
+    //     "email",
+    //     "password"
+    //    )
+    //    .leftJoin("users_tasks", "users_tasks.task_id", "=", "tasks.id")
+    //    .leftJoin("users", "users_tasks.user_id", "=", "users.id")
 
-    const tasks: TTaskDB[] = await db("tasks")
+    const tasks: TTaskDB[] = await db("tasks");
 
-    const result: TTaskWithUsers[] =  []
+    const result: TTaskWithUsers[] = [];
 
-    for (let task of tasks){
-        const responsibles=  []
-        const users_tasks: TUserTaskDB[] = await db("users_tasks").where({task_id: task.id})
-        for (let user_task of users_tasks){
-            const [user]: TUserDB[] = await db("users").where({id: user_task.user_id})
-            responsibles.push(user)
-        }
-        // result.push({
-        //     ...task,
-        //     responsibles
-        // })
-        const newTaskWithUsers : TTaskWithUsers = {
-            ...task,
-            responsibles
-        }
-        result.push(newTaskWithUsers)        
+    for (let task of tasks) {
+      const responsibles = [];
+      const users_tasks: TUserTaskDB[] = await db("users_tasks").where({
+        task_id: task.id,
+      });
+      for (let user_task of users_tasks) {
+        const [user]: TUserDB[] = await db("users").where({
+          id: user_task.user_id,
+        });
+        responsibles.push(user);
+      }
+      // result.push({
+      //     ...task,
+      //     responsibles
+      // })
+      const newTaskWithUsers: TTaskWithUsers = {
+        ...task,
+        responsibles,
+      };
+      result.push(newTaskWithUsers);
     }
 
-   res.status(200).send(result)   
-
+    res.status(200).send(result);
   } catch (error) {
     console.log(error);
 
