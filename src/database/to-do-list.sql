@@ -22,8 +22,10 @@ CREATE TABLE
         user_id TEXT NOT NULL,
         task_id TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (task_id) REFERENCES tasks (id)
+        FOREIGN KEY (task_id) REFERENCES tasks (id) ON UPDATE CASCADE
     );
+
+DROP TABLE users_tasks;
 
 INSERT INTO
     users (id, name, email, password)
@@ -74,3 +76,5 @@ LEFT JOIN users_tasks
 ON users_tasks.task_id = tasks.id
 LEFT JOIN users
 ON users_tasks.user_id = users.id;
+
+DELETE FROM users WHERE id= "f002";
